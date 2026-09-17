@@ -64,10 +64,11 @@ function ScrollRow({
     <div className="relative overflow-hidden whitespace-nowrap" ref={containerRef}>
       <motion.div
         className="inline-flex gap-8"
-        animate={paused ? {} : {
+        initial={{ x: direction === 'left' ? '0%' : '-50%' }}
+        animate={paused ? undefined : {
           x: direction === 'left' ? ['0%', '-50%'] : ['-50%', '0%'],
         }}
-        transition={paused ? {} : {
+        transition={paused ? { duration: 0 } : {
           x: {
             repeat: Infinity,
             repeatType: 'loop',
