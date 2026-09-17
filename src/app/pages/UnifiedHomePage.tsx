@@ -159,7 +159,7 @@ export function UnifiedHomePage() {
         className="relative pt-14 pb-16 sm:pt-20 lg:pt-24 lg:pb-24 border-b-2 border-black overflow-hidden"
         aria-labelledby="hero-heading"
       >
-        <ScrollingTitles dimmed paused />
+        <ScrollingTitles dimmed />
 
         <div className="relative mx-auto max-w-7xl px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
