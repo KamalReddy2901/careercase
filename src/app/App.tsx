@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { RouterProvider } from 'react-router';
 import { router } from './routes';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -21,6 +21,15 @@ function PageFallback() {
 }
 
 export default function App() {
+  useEffect(() => {
+    const navigatePresentation = (event: Event) => {
+      const path = (event as CustomEvent<{ path?: string }>).detail?.path;
+      if (path) void router.navigate(path);
+    };
+    window.addEventListener('careercase:presentation-navigate', navigatePresentation);
+    return () => window.removeEventListener('careercase:presentation-navigate', navigatePresentation);
+  }, []);
+
   return (
     <ErrorBoundary>
       <Suspense fallback={<PageFallback />}>

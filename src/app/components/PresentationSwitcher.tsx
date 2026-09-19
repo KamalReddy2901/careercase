@@ -21,6 +21,9 @@ export const isPresentationMode = () => sessions.size > 0;
 export function requestPresentationPersona(slug: string, path: string) {
   window.dispatchEvent(new CustomEvent('careercase:presentation-persona', { detail: { slug, path } }));
 }
+function requestPresentationNavigation(path: string) {
+  window.dispatchEvent(new CustomEvent('careercase:presentation-navigate', { detail: { path } }));
+}
 function setPresentationTransition(active: boolean) {
   window.dispatchEvent(new CustomEvent('careercase:presentation-transition', { detail: { active } }));
 }
@@ -95,7 +98,10 @@ export function PresentationSwitcher() {
       await navigateWhenPresentationAuthorityIsReady(
         () => readPresentationAuthority(sharedClient),
         { userId: fresh.data.user.id, email: fixtureEmail(slug) },
-        () => navigate(path),
+        // Persona switching crosses from the legacy shell into a separately
+        // routed SIH workspace. Ask the root router to own that transition so
+        // its rendered location cannot lag behind the address bar.
+        () => requestPresentationNavigation(path),
       );
       setMessage('Presentation persona ready.');
     } catch {
