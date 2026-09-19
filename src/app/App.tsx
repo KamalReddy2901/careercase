@@ -24,7 +24,14 @@ export default function App() {
   useEffect(() => {
     const navigatePresentation = (event: Event) => {
       const path = (event as CustomEvent<{ path?: string }>).detail?.path;
-      if (path) void router.navigate(path);
+      if (!path) return;
+      void router.navigate(path).then(() => {
+        // Auth changes and data-router navigation can settle in the same task
+        // when presentation mode crosses SIH workspaces. Re-announce the
+        // current browser location so the mounted route tree cannot retain the
+        // previous persona's outlet after the address bar has advanced.
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      });
     };
     window.addEventListener('careercase:presentation-navigate', navigatePresentation);
     return () => window.removeEventListener('careercase:presentation-navigate', navigatePresentation);
