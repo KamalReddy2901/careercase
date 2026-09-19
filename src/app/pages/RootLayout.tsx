@@ -36,6 +36,15 @@ export function RootLayout() {
 
   useEffect(() => { setRoutePending(false); }, [location.pathname, location.search]);
 
+  useEffect(() => {
+    const onPresentationTransition = (event: Event) => {
+      const active = (event as CustomEvent<{ active?: boolean }>).detail?.active;
+      setRoutePending(Boolean(active));
+    };
+    window.addEventListener('careercase:presentation-transition', onPresentationTransition);
+    return () => window.removeEventListener('careercase:presentation-transition', onPresentationTransition);
+  }, []);
+
   // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

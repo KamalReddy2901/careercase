@@ -21,6 +21,9 @@ export const isPresentationMode = () => sessions.size > 0;
 export function requestPresentationPersona(slug: string, path: string) {
   window.dispatchEvent(new CustomEvent('careercase:presentation-persona', { detail: { slug, path } }));
 }
+function setPresentationTransition(active: boolean) {
+  window.dispatchEvent(new CustomEvent('careercase:presentation-transition', { detail: { active } }));
+}
 function fixtureClient() {
   const env = import.meta.env;
   return createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY, {
@@ -70,6 +73,7 @@ export function PresentationSwitcher() {
     if (!sessions.has(slug) || busy) return;
     setBusy(true);
     setMessage('Opening presentation persona…');
+    setPresentationTransition(true);
     try {
       const fresh = await fixtureClient().auth.signInWithPassword({ email: fixtureEmail(slug), password: presentationPassword });
       if (fresh.error || !fresh.data.session || fresh.data.user?.app_metadata.fixture_namespace !== 'sih26044-controlled-v1') throw new Error('Unavailable');
@@ -90,6 +94,7 @@ export function PresentationSwitcher() {
       sessions.delete(slug);
       setReady(sessions.size > 0);
       setMessage('Presentation session unavailable. Unlock Presentation Mode to retry.');
+      setPresentationTransition(false);
     } finally {
       setBusy(false);
     }
