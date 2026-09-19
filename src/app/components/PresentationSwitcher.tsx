@@ -42,6 +42,14 @@ export function PresentationSwitcher() {
   const [message, setMessage] = useState('');
   if (!isSupabaseConfigured) return null;
 
+  function togglePresentationControls() {
+    setOpen(value => {
+      const next = !value;
+      if (next) window.dispatchEvent(new Event('careercase:presentation-opened'));
+      return next;
+    });
+  }
+
   async function unlock(event: React.FormEvent) {
     event.preventDefault();
     setBusy(true);
@@ -114,7 +122,7 @@ export function PresentationSwitcher() {
     <section aria-label="Presentation personas" className="border-b border-black/20 bg-[var(--paper)]">
       <div className="mx-auto max-w-7xl px-4 py-1.5">
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" className={`${control} font-black text-black`} aria-expanded={open || ready} aria-controls="presentation-controls" onClick={() => setOpen(value => !value)}>
+          <button type="button" className={`${control} font-black text-black`} aria-expanded={open || ready} aria-controls="presentation-controls" onClick={togglePresentationControls}>
             {ready ? 'Presentation mode' : 'Presentation mode · unlock'}
           </button>
           {ready && <>

@@ -263,6 +263,12 @@ export function OnboardingTour() {
     return () => window.removeEventListener('storage', onStorage);
   }, [user, isControlledPresentationActor]);
 
+  useEffect(() => {
+    const closeForPresentation = () => setVisible(false);
+    window.addEventListener('careercase:presentation-opened', closeForPresentation);
+    return () => window.removeEventListener('careercase:presentation-opened', closeForPresentation);
+  }, []);
+
   const dismiss = () => {
     localStorage.setItem(TOUR_KEY, '1');
     setVisible(false);
