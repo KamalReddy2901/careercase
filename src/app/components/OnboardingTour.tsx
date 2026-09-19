@@ -237,9 +237,16 @@ export function OnboardingTour() {
   const { user } = useAuth();
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState(0);
+  const isControlledPresentationActor = user?.app_metadata?.fixture_namespace === 'sih26044-controlled-v1';
 
   useEffect(() => {
-    if (!user || isPresentationMode()) return; // Presentation has its own operator controls.
+    // Prepared SIH actors must never surface the consumer onboarding overlay.
+    // The fixture session can persist across tabs even though the presentation
+    // password intentionally remains memory-only in each tab.
+    if (!user || isControlledPresentationActor || isPresentationMode()) {
+      setVisible(false);
+      return;
+    }
     const done = localStorage.getItem(TOUR_KEY);
     if (!done) {
       const t = setTimeout(() => setVisible(true), 900);
@@ -254,7 +261,7 @@ export function OnboardingTour() {
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
-  }, [user]);
+  }, [user, isControlledPresentationActor]);
 
   const dismiss = () => {
     localStorage.setItem(TOUR_KEY, '1');
