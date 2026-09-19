@@ -85,6 +85,15 @@ export function PresentationSwitcher() {
     setBusy(true);
     setMessage('Opening presentation persona…');
     setPresentationTransition(true);
+    // A presentation destination can be a different workspace for the same
+    // authenticated fixture (for example Student → Demo home). Re-authenticating
+    // the same user adds latency without changing authority, so route directly.
+    if (user?.email === fixtureEmail(slug)) {
+      requestPresentationNavigation(path);
+      setMessage('Presentation persona ready.');
+      setBusy(false);
+      return;
+    }
     try {
       const fresh = await fixtureClient().auth.signInWithPassword({ email: fixtureEmail(slug), password: presentationPassword });
       if (fresh.error || !fresh.data.session || fresh.data.user?.app_metadata.fixture_namespace !== 'sih26044-controlled-v1') throw new Error('Unavailable');
