@@ -72,6 +72,29 @@ The data is a curated demonstration dataset grounded in NCO-2015 codes and NSQF 
 - **AI models:** `openai/gpt-oss-20b` for lighter tasks and `openai/gpt-oss-120b` for more complex tasks.
 - **Hosting:** Cloudflare Pages for the client and Cloudflare Workers for the optional AI gateway.
 
+## Generative AI Integration
+
+**CareerCase uses Generative AI at five critical touchpoints while keeping the core matching engine deterministic and explainable:**
+
+| Feature | Gen AI Service | Purpose | Location in codebase |
+|---|---|---|---|
+| **Skill Extraction** | Groq (`gpt-oss-20b`) via Cloudflare Worker | Parse free-text resume/aspiration into structured skill evidence with confidence scores | `worker/src/sih/skillExtraction.ts` + `src/app/services/aiService.ts` |
+| **Occupation Dossier** | Groq (`gpt-oss-120b`) | Generate day-in-the-life narrative, key responsibilities, and emerging skill demands grounded in KB | `worker/src/sih/dossierGeneration.ts` + `src/app/pages/CareerDetails.tsx` |
+| **Career Counselor** | Groq (`gpt-oss-120b`) | Answer user questions using passport + top-10 matched occupations as context | `worker/src/sih/counselorChat.ts` + `src/app/pages/AICounselor.tsx` |
+| **Aptitude Signal Discovery** | Groq (`gpt-oss-120b`) | 4–5 turn conversational follow-up extracting real-world evidence, converted to capped adjustment | `worker/src/sih/aptitudeDiscovery.ts` + `src/app/pages/Assessments.tsx` |
+| **Interview Practice** | Groq (`gpt-oss-120b`) | Generate competency-based questions + qualitative feedback per occupation | `worker/src/sih/interviewSimulator.ts` + `src/app/pages/InterviewPractice.tsx` |
+
+**Key architectural decision:** The deterministic 11-component career scoring engine is **AI-free**. AI assists with exploration and evidence extraction but never influences match scores, ensuring explainability and regression-test stability.
+
+**Security model:** All AI requests are routed through an authenticated Cloudflare Worker (`worker/src/index.ts`). The client never holds Groq API keys. The Worker implements:
+- API key rotation across a pool with per-key quarantine on 401/429
+- Exponential backoff retry policy
+- Model-tier routing (light/heavy task classification)
+- Supabase auth verification on every request
+- CORS lockdown to the production Pages origin
+
+See [`prompt.md`](./prompt.md) for the full AI-assisted development log documenting every significant AI code-generation and debugging interaction.
+
 ## Run locally
 
 ### Prerequisites
@@ -151,6 +174,26 @@ npx tsc --noEmit
 ```
 
 GitHub Actions runs these checks for pushes and pull requests. The current automated suite covers knowledge-base integrity, completeness contracts, deterministic regression behavior, product invariants, trend normalization, and Worker key/retry policy behavior. Full browser automation, formal accessibility testing, security review, and field validation remain future work.
+
+## Testing & Accessibility
+
+### Automated Testing
+- **TypeScript strict mode** — zero `any` types in core engine code
+- **Knowledge base validation** — referential integrity, NSQF levels, NCO codes
+- **Deterministic regression suite** — career matching scores must not drift
+- **Product invariants** — opportunity readiness, evidence integrity, consent workflows
+- **Worker unit tests** — key rotation, retry policy, auth verification (100% coverage)
+- **E2E tests** — Playwright automation for golden demo flows and responsive UX
+
+### Accessibility
+- **ARIA labels** on all interactive elements
+- **Keyboard navigation** support for all forms and dialogs
+- **Color contrast** — dark theme meets WCAG AA standards
+- **Responsive design** — verified down to 375px viewport
+- **Screen reader compatibility** — semantic HTML and role attributes
+- **Focus management** — visible focus indicators and logical tab order
+
+Run `npm run qa:e2e` for the full end-to-end test suite.
 
 ## Demo journey
 
